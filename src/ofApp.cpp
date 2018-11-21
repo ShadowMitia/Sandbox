@@ -34,11 +34,22 @@ void ofApp::update(){
   ofSetWindowTitle(ofToString(ofGetFrameRate()));
   timer.update();
 
-  //for (auto& boid : boids) {
-    //boid.applyForce(computeCurl(boid.getPosition().x, boid.getPosition().y) * 10);
-    //boid.flock(boids);
-    //boid.update();
-  //}
+  for (auto& boid : boids) {
+    glm::vec2 desired = flowField.getFlow(static_cast<int>(pokemon.position.x) % flowField.getWidth(),
+                                          static_cast<int>(pokemon.position.y) % flowField.getHeight());
+    desired *= 30;
+
+    auto align = alignement(boid, boids, 100.0, 50.0);
+    auto sep = separate(boid, boids, 20.0, 50.0);
+    auto coh = cohesion(boid, boids, 20.0, 50.0);
+
+    boid.applyForce(steer(align, boid.velocity));
+    boid.applyForce(steer(sep, boid.velocity));
+    boid.applyForce(steer(coh, boid.velocity));
+
+    //void.applyForce(limit(glm::normalize(alignement(boid, {pokemon}, 100.0)) - boid.velocity, 50));
+    boid.update();
+  }
 
   pokemon.applyForce(flowField.getFlow(static_cast<int>(pokemon.position.x) % flowField.getWidth(),
                                        static_cast<int>(pokemon.position.y) % flowField.getHeight()));
@@ -46,11 +57,11 @@ void ofApp::update(){
 
   fbo.begin();
   ofBackground(0);
-  /*for (auto& boid : boids) {
+  for (auto& boid : boids) {
     boid.draw();
-    }*/
+  }
 
-  flowField.update();
+  //flowField.update();
 
   ofSetColor(ofColor::red);
   drawField(flowField, ofGetWindowWidth(), ofGetWindowHeight());
